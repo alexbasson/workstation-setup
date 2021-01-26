@@ -18,6 +18,7 @@ brew install --cask postman
 brew install --cask quicklook-json
 brew install youtube-dl
 brew install kryptco/tap/kr
+brew install --cask krisp
 
 # Terminals
 
