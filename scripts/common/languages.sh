@@ -52,8 +52,42 @@ EOF
 fi
 
 echo
-echo "Adding the asdf Ruby plugin (does not touch your existing rbenv install)"
+echo "Configuring Ruby via asdf"
 asdf plugin add ruby 2>/dev/null || true
+
+RUBY_VERSION_PINNED="4.0.5"
+asdf install ruby "$RUBY_VERSION_PINNED"
+asdf set -u ruby "$RUBY_VERSION_PINNED"
+
+# Runtime dependency of asdf-built Ruby's psych/YAML support. `brew uninstall
+# rbenv` autoremoves this as "unneeded" once nothing else references it,
+# which silently breaks `require 'psych'` at runtime (not just build time) --
+# make sure it's always present.
+brew list libyaml >/dev/null 2>&1 || brew install libyaml
+
+# Only Ruby's own shims go on PATH, not the whole ~/.asdf/shims directory --
+# that also holds shims for any other asdf plugin (e.g. python, dotnet) with
+# no global version set, which error instead of falling through to Homebrew.
+mkdir -p ~/.asdf/ruby-shims
+for shim in bundle bundler erb gem irb racc rake rdoc ri ruby; do
+  if [[ -e ~/.asdf/shims/"$shim" ]]; then
+    ln -sf ~/.asdf/shims/"$shim" ~/.asdf/ruby-shims/"$shim"
+  fi
+done
+
+if ! grep -qF '.asdf/ruby-shims' ~/.zshrc 2>/dev/null; then
+  cat >> ~/.zshrc <<'EOF'
+
+# Ruby via asdf. Only Ruby's own shims are exposed (not the full
+# ~/.asdf/shims, which also holds python/dotnet shims with no global
+# version set — those would error instead of falling through to Homebrew).
+export PATH="$HOME/.asdf/ruby-shims:$PATH"
+EOF
+fi
+
+# Use the shim directly here -- the PATH export above only takes effect in
+# new shells, not this already-running script.
+~/.asdf/ruby-shims/gem list bundler --installed >/dev/null 2>&1 || ~/.asdf/ruby-shims/gem install bundler
 
 echo "Copying .irbrc"
 cp files/.irbrc ~/.irbrc

@@ -24,6 +24,9 @@ brew "grpcurl"
 brew "jq"
 brew "kubernetes-cli"
 brew "libpq", link: true
+# Runtime dependency of the asdf-built Ruby (psych/YAML support), not just a
+# build-time one — keep it explicit so `brew autoremove` doesn't reclaim it.
+brew "libyaml"
 brew "maven"
 brew "node"
 brew "openjdk"
@@ -54,6 +57,7 @@ cask "notion"
 cask "rectangle"
 cask "slack"
 cask "sourcetree"
+cask "steermouse"
 cask "tuple"
 cask "visual-studio-code"
 cask "zoom"

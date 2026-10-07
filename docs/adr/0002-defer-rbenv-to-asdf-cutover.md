@@ -1,6 +1,6 @@
 # Install asdf's ruby plugin without touching the existing rbenv install
 
-Status: proposed (rbenv removal is a planned fast-follow)
+Status: superseded by ADR-0004 — the cutover described as a fast-follow here has since been completed.
 
 We decided to standardize Ruby on `asdf` instead of `rbenv`, but `languages.sh` only runs `asdf plugin add ruby` — it does not install a Ruby version, set an asdf global version, or add asdf's shell init to `.zshrc`/`.zprofile`. rbenv's existing shell init lines are left exactly as they are.
 
