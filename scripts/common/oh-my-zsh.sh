@@ -8,12 +8,14 @@ ZSH= sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zs
 
 echo "Ignoring insecure completion-dependent directories."
 echo "Needed when multiple admin users are using oh-my-zsh."
-echo "
+if ! grep -qF "ZSH_DISABLE_COMPFIX" ~/.zshenv 2>/dev/null; then
+  echo "
 
 # Ignoring insecure completion-dependent directories.
 # Needed when multiple admin users are using oh-my-zsh.
 ZSH_DISABLE_COMPFIX=true
 
 " >> ~/.zshenv
+fi
 
 set -e

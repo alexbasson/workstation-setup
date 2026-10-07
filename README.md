@@ -1,146 +1,77 @@
 # Workstation Setup
 
-This project automates the process of setting up a new Mac OS X software development machine using simple [Bash](https://www.gnu.org/software/bash/) scripting. It heavily relies on [homebrew](https://brew.sh/).
+A personal, single-machine Mac setup tool. It automates getting this machine into its expected state using simple [Bash](https://www.gnu.org/software/bash/) scripting and a [Homebrew Bundle](https://docs.brew.sh/Brewfile) (`Brewfile`).
 
-## Goals
-
-The primary goal of this project is to give people a simple script they can run to make their Mac OS X machine prepared and standardized for working on software development projects, especially those common at VMware Tanzu Labs.
+This is a fork of [pivotal/workstation-setup](https://github.com/pivotal/workstation-setup), a team-wide onboarding tool. It's no longer meant to serve anyone but me, so it's pared down to exactly what I actually use, with no opt-in/job-function configuration options.
 
 ## Why did we do it this way?
 
- * A bash script is easy for users to edit locally on-the-fly for small temporary tweaks
+ * A bash script is easy to edit locally on-the-fly for small temporary tweaks
  * Everything is in one repository
- * The project name is informative
- * It is easy to fork and customize
- * It has limited requirements: `git` and `bash` available on macOS by default
-
-## Anti-goals
-
-This project does not aim to do everything. Some examples:
-
- * We don't install everything that your project needs. These scripts should only install generally useful things, and prefer running quickly over being complete.
- * We avoid setting up and maintaining overly-custom configurations. When there is already a tool that will get us something in a conventional manner, such as [Oh My Zsh](https://ohmyz.sh/), we prefer to use it instead of doing things ourselves.
+ * One `Brewfile` is the single source of truth for every formula, cask, and tap
+ * It has limited requirements: `git`, `bash`, and Homebrew
 
 ## Preparation
 
-- Run the latest version of macOS unless you have a specific reason not to
-- These scripts might work on previous versions, but are maintained with only the latest macOS in mind
+- Run the latest version of macOS unless there's a specific reason not to
 - Install the latest stable version of [Command Line Tools for Xcode](https://developer.apple.com/download/all/?q=Command%20Line%20Tools%20for%20Xcode)
 
 ## Getting this tool
-Open up `Terminal.app` and run the following command:
+
+Clone this repository and `cd` into it:
 
 ```sh
 mkdir -p ~/workspace &&
   cd ~/workspace &&
-  git clone https://github.com/pivotal/workstation-setup.git &&
+  git clone <this repo's URL> workstation-setup &&
   cd workstation-setup
 ```
 
-**Note:** This might prompt you to install the latest Xcode command line development tools. Please do so if prompted. 
+(`git remote -v` currently still points at the upstream `pivotal/workstation-setup` this was forked from — worth pointing `origin` at your own remote if you want to push changes.)
 
 ## Using this tool
-Within `~/workspace/workstation-setup`, run the following:
+
+Within `~/workspace/workstation-setup`, run:
 
 ```shell
-./setup.sh [list of optional configurations]
-```
-
-Examples:
-```shell
-# This will only install the default items
-./setup.sh 
-
-# This will install the latest Java and Docker
-./setup.sh java docker
+./setup.sh
 ```
 
 **Warning: this tool might overwrite existing configurations.**
 
-### Items installed by default
-We recommend that you look at `setup.sh` to see what is automatically installed. You'll see it calls other scripts within `scripts/common`, so feel free to take a look at those, too. Note that you can edit any of those files to add or remove items specific for your needs, but the goal of this project is to have sane defaults for our target audience.
-
-### Opt-In Configurations
-Please look in `scripts/opt-in/` for optional, opt-in configurations. Some of these are languages and associated frameworks, such as `java` and `golang`. Some are supporting infrastructure, such as `docker` and `kubernetes`. Others might be specific tools for application platforms, such as `cloud-foundry`.
-
-To install any of these, add them as arguments to `$> setup.sh`. Examples: 
-
-```sh
-# Common for Spring Boot development
-./setup.sh java spring-boot docker
-
-# Lots of languages
-./setup.sh java ruby node golang python c
-
-# Love those platforms!
-./setup.sh golang docker kubernetes cloud-foundry terraform concourse
-```
-
-## Analytics
-
-The tool will send anonymous user data to our Google Analytics account, so we can see what command line arguments are popular.  You can disable this:
-```
-# Remove unnecessary languages when running command
-SKIP_ANALYTICS=1 ./setup.sh java ruby node golang c docker
-```
-This will also disable brew's [data collection](https://github.com/Homebrew/brew/blob/master/docs/Analytics.md).
+Everything it installs lives in `Brewfile` (one flat list, no opt-ins). `setup.sh` sources each script in `scripts/common/` in order; feel free to read or edit any of them.
 
 ## Having problems?
 
-If you're having problems using the setup script, please let us know by [opening an issue](https://github.com/pivotal/workstation-setup/issues/new).
-
-If you see errors from `brew`, try running `brew doctor` and include the diagnostic output in your issue submission.
-
-## Customizing
-
-If you'd like to customize this project for a project's use:
-
-- Fork the project
-- Edit the shells scripts to your liking
-- Profit
+If you see errors from `brew`, try running `brew doctor`.
 
 ## Frequently Asked Questions and Troubleshooting
+
 _Q: Can I rerun `setup.sh`?_
 
-A: Yes, but with a _but_. While this script is not entirely [idempotent](https://en.wikipedia.org/wiki/Idempotence), it does use homebrew's cache to skip reinstalling items, and is pretty lenient about ignoring errors when non-homebrew items get mad that they are already installed. There is no guarantee that some configurations won't be overwritten or duplicated. 
+A: Yes. The scripts are written to be idempotent — reruns shouldn't duplicate shell config or error on already-installed packages.
 
 _Q: Should I run this with `sudo`?_
 
-A: No. `setup.sh` will ask you for your password take care of that for you.
+A: No. `setup.sh` will ask for your password and take care of that itself (needed for JDK symlinking into `/Library/Java/JavaVirtualMachines`).
 
 _Q: I'm getting permission errors such as the one below:_
-```sh 
+```sh
 Error: Can't create update lock in /usr/local/var/homebrew/locks!
 Fix permissions by running:
   sudo chown -R $(whoami) /usr/local/var/homebrew
 ```
-A: **Short answer:** run the suggested command or consider the **Possible Solution** described below.
+A: **Short answer:** run the suggested command, or consider the **Possible Solution** described below.
 
-**Longer answer:** You might have multiple user profiles on your machine that are using homebrew (such as this tool) resulting in a mix of file and directory ownership under `/usr/local/var/homebrew`. This should mostly be an issue with installing things, but not using the tools installed by `brew`. If you switch between profiles _and_ install tools using `brew` often you might run into this a lot.
+**Longer answer:** you might have multiple user profiles on this machine using Homebrew, resulting in a mix of file and directory ownership under `/usr/local/var/homebrew` (or `/opt/homebrew` on Apple Silicon). This should mostly be an issue with installing things, not using the tools installed by `brew`.
 
-**Possible Solution:** Try this solution from [itectec](https://itectec.com/superuser/enable-multiple-users-to-install-software-using-homebrew/) which makes homebrew's directories writable by the `staff` group, which should be all admin users on your machine.
+**Possible Solution:**
 
-1. Note your default `umask` for later.
-
+1. Note the default `umask` for later: `umask`
+2. Make Homebrew's directories writable by everyone in the `staff` group:
    ```shell
-    $> umask
-    022
-    ```
-
-2. Set homebrew's directories to be writable by everyone in the `staff` group.
-
-    ```shell
-    umask 002 # group write permission
-    sudo chmod -R g+w /usr/local/* # group writable
-    sudo chgrp -R staff /usr/local/* # staff owned
-    ```
-
-3. Set your `umask` back to the default.
-
-   ```shell
-    umask 022 # or whatever you noted earlier
+   umask 002
+   sudo chmod -R g+w /opt/homebrew/*
+   sudo chgrp -R staff /opt/homebrew/*
    ```
-
-_Q: How to I get my change into this tool?_
-
-A: Submit a PR, especially for things that are outdated or broken. But, we are being vigilant about keeping this tool lean after a history of letting many idiosyncratic changes creep in over the past few years. As stated above, you can edit the files yourself after downloading them and/or fork.
+3. Set `umask` back: `umask 022` (or whatever was noted earlier)
