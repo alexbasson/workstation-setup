@@ -15,6 +15,7 @@ MY_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Note: Homebrew needs to be set up first
 source "${MY_DIR}/scripts/common/homebrew.sh"
+source "${MY_DIR}/scripts/common/brew-maintenance.sh"
 
 # Install everything else
 source "${MY_DIR}/scripts/common/oh-my-zsh.sh"
